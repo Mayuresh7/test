@@ -1,0 +1,39 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * Implements hook_form_alter().
+ */
+ function test_form_alter(&$form, FormStateInterface $form_state, $form_id){
+     if($form_id == 'system_site_information_settings'){
+
+         // Get 'siteapikey' system variable value.  
+         $siteapikey = \Drupal::state()->get('siteapikey');
+
+         // Add new form field 'site_api_key'.
+         $form['site_information']['site_api_key'] = [
+             '#type' => 'textfield',
+             '#title' => t('Site API Key'),
+             '#default_value' => $siteapikey != NULL || $siteapikey != '' ? $siteapikey : t('No API Key yet'),
+         ];
+
+         // Change submit button text.
+         $form['actions']['submit']['#value'] = t('Update Configuration');
+
+         // Add custom submit handler.
+         $form['#submit'][] = 'site_api_key_form_submit';
+     }
+ }
+
+/**
+ * Submit handler to save 'site_api_key' value.
+ */
+ function site_api_key_form_submit($form, FormStateInterface $form_state){
+
+     // Set 'siteapikey' system variable.
+     \Drupal::state()->set('siteapikey', $form_state->getValue('site_api_key'));
+
+     // Display status message. 
+     \Drupal::messenger()->addStatus(t('Site API Key has been saved successfully with value '.$form_state->getValue('site_api_key')));
+ }
